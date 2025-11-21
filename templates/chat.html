@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at top, #101827, #020617);
+            color: #e5e7eb;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-wrapper {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: #020617;
+            border-radius: 18px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid #1f2937;
+        }
+
+        /* Left sidebar */
+        .sidebar {
+            width: 230px;
+            background: #020617;
+            border-right: 1px solid #1f2937;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 18px;
+            color: #e5e7eb;
+        }
+
+        .user-tag {
+            padding: 10px 12px;
+            background: #0b1120;
+            border-radius: 999px;
+            font-size: 14px;
+            border: 1px solid #1f2937;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Main chat */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #020617;
+        }
+
+        .chat-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chat-subtitle {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .logout-btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid #4b5563;
+            background: transparent;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .logout-btn:hover {
+            background: #111827;
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 18px;
+            overflow-y: auto;
+        }
+
+        .msg-row {
+            margin-bottom: 12px;
+            display: flex;
+        }
+
+        .msg-row.user {
+            justify-content: flex-end;
+        }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .msg-user-bubble {
+            background: #4f46e5;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-bot-bubble {
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-label {
+            font-size: 11px;
+            margin-bottom: 3px;
+            color: #9ca3af;
+        }
+
+        .input-area {
+            border-top: 1px solid #1f2937;
+            padding: 10px 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #020617;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            padding: 6px 8px;
+        }
+
+        #message-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+
+        #message-input::placeholder {
+            color: #6b7280;
+        }
+
+        .send-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            background: #4f46e5;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .send-btn:hover {
+            background: #6366f1;
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: #9ca3af;
+            padding: 0 4px;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-wrapper {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat-wrapper">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">🤖 AI Chat</div>
+
+        <div class="user-tag">
+            Logged in as<br>
+            <strong>{{ request.user.username }}</strong>
+        </div>
+
+        <div class="sidebar-footer">
+            Built with Django + HuggingFace<br>
+            <span style="font-size:11px;">by Shru 😎</span>
+        </div>
+    </div>
+
+    <!-- Main Chat -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <div class="chat-title">Chat with your AI</div>
+                <div class="chat-subtitle">Ask anything. I'll try my best 😉</div>
+            </div>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button class="logout-btn" type="submit">Logout</button>
+            </form>
+        </div>
+
+        <div id="chat-box"></div>
+        <div id="typing" class="typing-indicator" style="display:none;">AI is thinking…</div>
+
+        <div class="input-area">
+            <form id="chat-form">
+                {% csrf_token %}
+                <div class="input-row">
+                    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                    <button type="submit" class="send-btn">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const box = document.getElementById('chat-box');
+    const typing = document.getElementById('typing');
+
+    function addMessage(text, from) {
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + (from === 'user' ? 'user' : 'bot');
+
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble ' + (from === 'user' ? 'msg-user-bubble' : 'msg-bot-bubble');
+
+        bubble.innerText = text;
+
+        row.appendChild(bubble);
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        addMessage(msg, 'user');
+        input.value = '';
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        typing.style.display = 'block';
+
+        try {
+            const resp = await fetch('{% url "chat_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ message: msg })
+            });
+
+            const data = await resp.json();
+            typing.style.display = 'none';
+
+            if (data.reply) {
+                addMessage(data.reply, 'bot');
+            } else {
+                addMessage('Error: no reply from server.', 'bot');
+            }
+        } catch (err) {
+            typing.style.display = 'none';
+            addMessage('Network error, please try again.', 'bot');
+        }
+    });
+</script>
+</body>
+</html>

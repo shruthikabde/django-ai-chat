@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+myproject/
+.env
+db.sqlite3
+staticfiles/
+.vscode/

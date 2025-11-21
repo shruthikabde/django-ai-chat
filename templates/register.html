@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .box {
+            background: white;
+            padding: 30px;
+            width: 360px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h2 { margin-bottom: 16px; }
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #6a11cb;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover { background: #2575fc; }
+        a { font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>Create an account </h2>
+    {% if form.errors %}
+      <p style="color:red; font-size:14px; margin-bottom:8px;">
+        Please fix the errors below (password too weak or mismatch).
+      </p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.username.label_tag }}
+        {{ form.username }}
+
+        {{ form.password1.label_tag }}
+        {{ form.password1 }}
+
+        {{ form.password2.label_tag }}
+        {{ form.password2 }}
+
+        <button type="submit">Register</button>
+    </form>
+    <p>Already have an account?
+        <a href="{% url 'login' %}">Login</a>
+    </p>
+</div>
+</body>
+</html>
